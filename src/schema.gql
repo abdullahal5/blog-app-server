@@ -7,6 +7,17 @@ type AuthResponse {
   role: String
 }
 
+input CreatePostInput {
+  content: String
+  excerpt: String
+  featured: Boolean
+  publishedAt: DateTime
+  scheduledAt: DateTime
+  slug: String!
+  status: PostStatus
+  title: String!
+}
+
 input CreateUserInput {
   email: String!
   name: String!
@@ -20,8 +31,36 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Mutation {
+  createPost(data: CreatePostInput!): Post!
   createUser(data: CreateUserInput!): AuthResponse!
   signin(data: SignInUserInput!): AuthResponse!
+}
+
+type Post {
+  author: User!
+  authorId: String!
+  commentCount: Int!
+  content: String
+  createdAt: DateTime!
+  excerpt: String
+  featured: Boolean!
+  id: ID!
+  likeCount: Int!
+  publishedAt: DateTime
+  scheduledAt: DateTime
+  slug: String!
+  status: PostStatus!
+  title: String!
+  updatedAt: DateTime!
+  viewCount: Int!
+}
+
+"""Post status types"""
+enum PostStatus {
+  ARCHIVED
+  DRAFT
+  PUBLISHED
+  SCHEDULED
 }
 
 type Query {

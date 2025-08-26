@@ -6,7 +6,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { authModule } from './auth/auth.module';
+import { PostModule } from './post/post.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,13 +16,16 @@ import { authModule } from './auth/auth.module';
     }),
     PrismaModule,
     UserModule,
-    authModule,
+    PostModule,
+    AuthModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      context: ({ req }) => ({ req }),
     }),
   ],
 })
