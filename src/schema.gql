@@ -1,0 +1,58 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AuthResponse {
+  accessToken: String!
+  role: String
+}
+
+input CreateUserInput {
+  email: String!
+  name: String!
+  password: String!
+  role: UserRole
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createUser(data: CreateUserInput!): AuthResponse!
+  signin(data: SignInUserInput!): AuthResponse!
+}
+
+type Query {
+  allUsers: [User!]!
+  singleUser(id: String!): User
+}
+
+input SignInUserInput {
+  email: String!
+  password: String!
+}
+
+type User {
+  avatar: String
+  bio: String
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  isActive: Boolean!
+  isVerified: Boolean!
+  lastLoginAt: DateTime
+  name: String!
+  password: String!
+  role: UserRole!
+  updatedAt: DateTime!
+}
+
+"""User role types"""
+enum UserRole {
+  ADMIN
+  AUTHOR
+  EDITOR
+  READER
+}

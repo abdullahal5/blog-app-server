@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  AUTHOR
+  READER
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
+model User {
+  id           String      @id @default(uuid())
+  name         String
+  email        String      @unique
+  password     String
+  role         UserRole    @default(AUTHOR)
+  avatar       String?     @db.VarChar(500)
+  bio          String?     @db.Text
+  website      String?     @db.VarChar(500)
+  isVerified   Boolean     @default(false)
+  isActive     Boolean     @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  posts        Post[]
+  comments     Comment[]
+  likedPosts   Like[]      @relation("UserLikes")
+  bookmarks    Bookmark[]
+
+  @@index([email])
+  @@index([role])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Post {
+  id           String      @id @default(uuid())
+  title        String
+  slug         String      @unique
+  excerpt      String?     @db.Text
+  content      String?     @db.Text
+  status       PostStatus  @default(DRAFT)
+  publishedAt  DateTime?
+  scheduledAt  DateTime?
+  viewCount    Int         @default(0)
+  likeCount    Int         @default(0)
+  commentCount Int         @default(0)
+  featured     Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  authorId     String
+  author       User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categories   Category[]  @relation("PostCategories")
+  tags         Tag[]       @relation("PostTags")
+  comments     Comment[]
+  likes        Like[]      @relation("PostLikes")
+  bookmarks    Bookmark[]
+  ydoc         YDoc?
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([authorId])
+  @@index([featured])
+  @@map("posts")
+}
+
+model Category {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  slug        String      @unique
+  description String?     @db.Text
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  posts       Post[]      @relation("PostCategories")
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Tag {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  slug        String      @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  posts       Post[]      @relation("PostTags")
+
+  @@index([slug])
+  @@map("tags")
+}
+
+model Comment {
+  id          String      @id @default(uuid())
+  content     String      @db.Text
+  isApproved  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  authorId    String
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postId      String
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Comment?    @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[]   @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([isApproved])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Like {
+  id          String      @id @default(uuid())
+  createdAt   DateTime    @default(now())
+
+  userId      String
+  user        User        @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
+  postId      String
+  post        Post        @relation("PostLikes", fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+model Bookmark {
+  id          String      @id @default(uuid())
+  createdAt   DateTime    @default(now())
+
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId      String
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("bookmarks")
+}
+
+model YDoc {
+  id          String      @id @default(uuid())
+  ydocState   Json
+  version     Int         @default(1)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  postId      String      @unique
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@map("ydocs")
+}
